@@ -53,18 +53,19 @@ RELATIONS = {
 def get_final_mult(atk_type, def_types):
     m_list = []
     for dt in def_types:
-        if atk_type == dt: m_list.append(1.0)
-        else: m_list.append(RELATIONS.get(atk_type, {}).get(dt, 1.0))
+        # 【修正点】直接从字典获取倍率，字典里没有的默认为 1.0 (包括同系)
+        # 这样你在 RELATIONS 里定义的龙打龙=2.0，恶打恶=2.0 就会生效了
+        m_list.append(RELATIONS.get(atk_type, {}).get(dt, 1.0))
     
+    # 双属性特殊计算逻辑
     if len(m_list) == 2:
-        if m_list[0] == 2.0 and m_list[1] == 2.0: return 3.0
-        if m_list[0] == 0.5 and m_list[1] == 0.5: return 0.33
+        if m_list[0] == 2.0 and m_list[1] == 2.0: return 3.0 # 双重克制上限设定为 3x
+        if m_list[0] == 0.5 and m_list[1] == 0.5: return 0.25 # 双重抵抗设定
         if (m_list[0] == 2.0 and m_list[1] == 0.5) or (m_list[0] == 0.5 and m_list[1] == 2.0): return 1.0
         
     res = 1.0
     for m in m_list: res *= m
     return round(res, 2)
-
 def colored_type(t):
     color = TYPE_DATA.get(t, {"color": "#636e72"})['color']
     icon = TYPE_DATA.get(t, {"icon": "❓"})['icon']
